@@ -9,7 +9,7 @@ Welcome to my **Project Portfolio** repository! This repository showcases variou
   - [Peer-to-Peer File Transfer Network](#peer-to-peer-file-transfer-network)
   - [Custom Version Control System](#custom-version-control-system)
 - [Skills](#skills)
-- [Contact](#contact)
+
 
 ## About Me
 I am a passionate **computer science student** with a keen interest in **cybersecurity** and **networking**. My projects revolve around cryptographic algorithms, networking protocols, and custom software solutions. I am constantly learning and applying new technologies to solve practical problems.
