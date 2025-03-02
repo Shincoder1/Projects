@@ -5,7 +5,6 @@ Welcome to my **Project Portfolio** repository! This repository showcases variou
 ## Table of Contents
 - [About Me](#about-me)
 - [Projects](#projects)
-  - [Comp-Sci Course Guide Website](#comp-sci-course-guide-website)
   - [AES Implementation from Scratch](#aes-implementation-from-scratch)
   - [Peer-to-Peer File Transfer Network](#peer-to-peer-file-transfer-network)
   - [Custom Version Control System](#custom-version-control-system)
