@@ -1,0 +1,59 @@
+#!/bin/dash
+if [ $# -ne 1 ]; then
+    echo "usage: pushy-show <filenames>"
+    exit 1
+fi
+# extract the commit number from the command line.
+commitNumber=$(echo "$1" | cut -d ':' -f1)
+# extract the filename from the command line.
+filename=$(echo "$1" | cut -d ':' -f2)
+
+
+
+
+# check if commit number is not inputed.
+if [ -z "$commitNumber" ]; then
+    if [ ! -d ".pushy/index" ]; then
+        echo "pushy-show: error: '$filename' not found in index"
+    fi 
+
+    cd ".pushy/index" || exit 1
+
+    fileFound=0
+    # Cheking if file exists in the index 
+    for file in *; do 
+        if [ "$file" = "$filename" ]; then
+            fileFound=1
+            break
+        fi
+    done
+    if [ "$fileFound" -eq 0 ]; then
+        echo "pushy-show: error: '$filename' not found in index"
+        exit 1
+    fi
+else
+    # If commit file doesn't exist then should print.
+    if [ ! -d ".pushy/commits/commit$commitNumber" ]; then
+        echo "pushy-show: error: unknown commit '$commitNumber'"
+        exit 1
+    fi
+
+    cd ".pushy/commits/commit$commitNumber" || exit 1
+
+    # Checking if file exists in the most recent commit directory.
+    fileFound=0
+    for file in *; do 
+        if [ "$file" = "$filename" ]; then
+            fileFound=1
+            break
+        fi
+    done
+    if [ "$fileFound" -eq 0 ]; then
+        echo "pushy-show: error: '$filename' not found in commit $commitNumber"
+        exit 1
+    fi
+fi
+
+cat "$filename"
+
+cd "../.."
