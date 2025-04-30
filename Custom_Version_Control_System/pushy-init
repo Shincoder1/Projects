@@ -1,15 +1,11 @@
 #!/bin/dash
 
-# Count the number of files
-commitNumber=0
-while [ -d ".pushy/commits/commit$commitNumber" ]; do
-    commitNumber=$((commitNumber + 1))
-done
-commitNumber=$((commitNumber - 1))
+currDir=$(pwd)
 
-
-while [ -d ".pushy/commits/commit$commitNumber" ]; do
-    message=$(cat ".pushy/commits/commit$commitNumber/message")
-    echo "$commitNumber $message"
-    commitNumber=$((commitNumber - 1))
-done
+if [ -d ".pushy" ]; then
+    echo "pushy-init: error: .pushy already exists"
+    exit 1;
+else 
+    mkdir ".pushy"
+    echo "Initialized empty pushy repository in .pushy"
+fi
