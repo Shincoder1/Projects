@@ -42,10 +42,6 @@ if __name__ == '__main__':
             elif tagType == "QBF":
                 print("[Server] Recieveing QBF from client")
 
-                # bitarray_in_bits = receivedBF.backend.array_
-                # bitarray_in_bytes = bitarray_in_bits.tobytes()
-                # tempBF = bitarray()
-                # tempBF.frombytes(bitarray_in_bytes)
                 qbf_bits = bitarray()
                 qbf_bits.frombytes(receivedBF.backend.array_.tobytes())
 
@@ -55,11 +51,6 @@ if __name__ == '__main__':
                 else:
                     match = False
                     for cbf in storedCBF:
-                        # CBF_bitarray = cbf.backend.array_
-                        # CBF_bytes = CBF_bitarray.tobytes()
-                        # tempCBF = bitarray()
-                        # tempCBF.frombytes(CBF_bitarray)
-                        # CBF_matching = (tempBF & tempCBF).any()
                         cbf_bits = bitarray()
                         cbf_bits.frombytes(cbf.backend.array_.tobytes())
                         
