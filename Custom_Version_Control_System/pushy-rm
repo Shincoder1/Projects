@@ -1,0 +1,69 @@
+#!/bin/dash
+
+# Error case where no arguments apart from the program name is passed in.
+if [ $# -eq 0 ]; then
+    echo "usage: pushy-rm [--force] [--cached] <filenames>"
+    exit 1
+fi
+
+# Investigating case where only program name and a filename is passed in.
+for filename in "$@"; do
+    if [ "$filename" = "$0" ] || [ "$filename" = "--force" ] || [ "$filename" = "--cached" ]; then
+        continue
+    fi 
+    # Haven't added filename into index yet or haven't made a commit yet.
+    if [ ! -e ".pushy/index/$filename" ]; then
+        echo "pushy-rm: error: '$filename' is not in the pushy repository"
+        exit 1
+    elif [ ! -d ".pushy/commits" ] && [ $# -eq 1 ]; then 
+        # Meaning this else if will only be executed if --cached or --force isn't an option.
+        echo "pushy-rm: error: '$filename' has staged changes in the index"
+        exit 1
+    fi
+
+    number=0
+    while [ -d ".pushy/commits/commit$number" ]; do
+        number=$((number + 1))
+    done
+    # As you want to check the most recent commit
+    number=$((number - 1))
+    # Error case where you've only added and not commit yet.
+    if [ $# -eq 1 ]; then 
+        if [ ! -e ".pushy/commits/commit$number/$filename" ]; then
+            echo "pushy-rm: error: '$filename' has staged changes in the index"
+            exit 1
+        fi
+        # If current file is not the same as the file in the index and the file in the index is not the same as the file in the most recent commit. 
+        if ! cmp -s "$filename" ".pushy/index/$filename" && ! cmp -s ".pushy/index/$filename" ".pushy/commits/commit$number/$filename"; then
+            echo "pushy-rm: error: '$filename' in index is different to both the working file and the repository"
+            exit 1
+        fi
+
+        # If current file is not the same as the file in the index 
+        if ! cmp -s "$filename" ".pushy/index/$filename"; then
+            echo "pushy-rm: error: '$filename' in the repository is different to the working file"
+            exit 1
+        elif ! cmp -s ".pushy/index/$filename" ".pushy/commits/commit$number/$filename"; then
+            echo "pushy-rm: error: '$filename' has staged changes in the index"
+            exit 1
+        fi
+    elif [ "$1" = "--cached" ] || [ "$2" = "--cached" ]; then
+        if ! cmp -s "$filename" ".pushy/index/$filename" && ! cmp -s ".pushy/index/$filename" ".pushy/commits/commit$number/$filename"; then
+            echo "pushy-rm: error: '$filename' in index is different to both the working file and the repository"
+            exit 1
+        fi
+
+        rm ".pushy/index/$filename" 
+        exit
+    elif [ "$1" = "--force" ] || [ "$2" = "--force" ]; then 
+        rm ".pushy/index/$filename" 
+        rm "$filename"
+        exit 
+    fi 
+
+    # Not in if statement to save space as both normal remove and --cached needs to remove the file from the index.
+    rm  ".pushy/index/$filename" 
+    if [ $# -eq 1 ]; then 
+        rm "$filename"
+    fi
+done
