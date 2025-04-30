@@ -5,6 +5,8 @@ This project implements the DIMY Digital Contact Tracing Protocol, a decentraliz
 ## Overview
 
 The DIMY protocol facilitates the generation and exchange of ephemeral identifiers (Ephemeral ID, EphID) between devices. These identifiers are used to establish a shared secret key (Encounter ID, EncID) that is used to record encounters between devices. Devices store these encounters in Bloom filters, which are later used to check if a device has been in close contact with someone diagnosed with COVID-19.
+UDP connection is used to broadcast shares of the EphID. To simulate a range mechanism, a drop mechanism of 50% is implemented to immitate bluetooth ranges. A TCP connection is utilised in communicating with the "back-end".
+
 
 ### Key Features
 
