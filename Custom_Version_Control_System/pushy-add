@@ -1,0 +1,55 @@
+#!/bin/dash
+
+#if its not in current directory but is in index, remove from index.
+
+
+if [ $# -eq 0 ]; then
+    echo "usage: pushy-add <filenames>"
+    exit 1
+fi
+
+if [ ! -d ".pushy" ]; then
+    echo "pushy-add: error: pushy repository directory .pushy not found"
+    exit 1
+fi 
+
+pathToIndex="$(pwd)/.pushy/index"
+if [ ! -d "$pathToIndex" ]; then
+    mkdir "$pathToIndex"
+fi
+
+skip=0
+
+# Loop through every argument passed in to add into the index.
+for file in "$@"; do
+    # Edge case where the file is in the index but not current directory.
+    if [ ! -e "$file" ] && [ -e ".pushy/index/$file" ]; then 
+        rm ".pushy/index/$file"
+        continue
+    fi
+    if [ ! -e "$file" ]; then 
+        echo "pushy-add: error: can not open '$file'"
+        continue
+    fi
+    
+
+    # cd into the index directory to check if the filename is already inside the directory
+    # if found inside the directory already, cat instead of copy as we should replace and not add a new file.
+    cd ".pushy/index" || exit 1
+    for filename in *; do
+        if [ "$filename" = "$file" ]; then
+            cat "$filename" > "$file"
+            skip=1
+            break
+        fi
+    done
+    cd "../.."
+    # now we are back in the parent directory where all commands are being called from.
+
+    # If skip is 1 then copy into index.
+    if [ "$skip" ]; then 
+        cp "$file" "$pathToIndex" 
+    else 
+        skip=0
+    fi
+done
