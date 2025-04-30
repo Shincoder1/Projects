@@ -1,0 +1,15 @@
+#!/bin/dash
+
+# Count the number of files
+commitNumber=0
+while [ -d ".pushy/commits/commit$commitNumber" ]; do
+    commitNumber=$((commitNumber + 1))
+done
+commitNumber=$((commitNumber - 1))
+
+
+while [ -d ".pushy/commits/commit$commitNumber" ]; do
+    message=$(cat ".pushy/commits/commit$commitNumber/message")
+    echo "$commitNumber $message"
+    commitNumber=$((commitNumber - 1))
+done
