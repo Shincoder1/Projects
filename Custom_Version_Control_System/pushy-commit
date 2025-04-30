@@ -1,0 +1,141 @@
+#!/bin/dash
+
+if [ ! -d ".pushy" ]; then
+    echo "pushy-commit: error: pushy repository directory .pushy not found"
+    exit 1
+fi
+
+# Standard error checking of usage.
+if [ -z "$2" ]; then 
+    echo "usage: pushy-commit [-a] -m commit-message"
+    exit 1
+elif [ $# -eq 3 ]; then
+    if [ ! "$1" = "-a" ] && [ ! "$2" = "-m" ]; then
+        echo "usage: pushy-commit [-a] -m commit-message"
+        exit 1
+    fi
+elif [ $# -eq 2 ]; then 
+    if [ ! "$1" = "-m" ]; then
+        echo "usage: pushy-commit [-a] -m commit-message"
+        exit 1
+    fi
+else
+    echo "usage: pushy-commit [-a] -m commit-message"
+    exit 1
+fi
+
+pathToIndex="$(pwd)/.pushy/index"
+pathToCommits="$(pwd)/.pushy/commits"
+
+# Meaning user hasn't added any files to the index yet.
+if [ ! -d "$pathToIndex" ]; then
+    echo "nothing to commit"
+fi
+
+if [ ! -d "$pathToCommits" ]; then 
+    mkdir "$pathToCommits"
+fi
+
+# Counting the number of previous commits
+if [ ! -d ".pushy/commits" ]; then
+    exit 1
+fi
+
+cd ".pushy/commits" || exit 1
+
+numCommits=0
+while [ -d "commit$numCommits" ]; do
+    numCommits=$((numCommits + 1))
+done
+cd "../.."
+# We are back in our home directory now.
+
+# Will go into here if -a is specified in request
+if [ $# -eq 3 ]; then
+    for file in *; do 
+        if [ ! -e ".pushy/index/$file" ]; then
+            continue
+        elif ! cmp -s "$file" ".pushy/index/$file"; then
+            # Meaning the file in the index is not up to date.
+            pushy-add "$file"
+        fi
+    done
+
+    # Looping through all files in index to see if it exists in the index but not in the current directory.
+    for file in ".pushy/index/"*; do
+        # Using sed here to get rid of the .pushy/index/ in front of the filename
+        filename=$(echo "$file" | sed 's/\.pushy\/index\///')
+        if [ ! -e "$filename" ]; then
+            pushy-add "$filename"
+        fi
+    done
+fi
+
+
+#now loop through every file in the index directory and copy them into the commit directory. 
+cd ".pushy/index" || exit 1
+
+previousCommit=$((numCommits - 1))
+sameFiles=0
+different=0
+# This if was created to check if a commit is need in the first place, i.e if nothing is changed nothing should be committed.
+if [ ! "$previousCommit" -eq -1 ]; then
+    # Count how many files are the same between the index and the previous commit. 
+    # This is being counted in the .pushy/index directory.
+    for file in *; do
+        if cmp -s "$file" "../commits/commit$previousCommit/$file"; then
+            sameFiles=$((sameFiles + 1))
+            continue
+        elif [ ! -e "../commits/commit$previousCommit/$file" ]; then
+            different=1
+        fi
+    done
+
+    cd "../commits/commit$previousCommit" || exit 1 # Go into commits directory to see if they are the same.
+    commitSameFiles=$sameFiles
+    # Negative to account for the message file which will always be there.
+    fileCount=-1
+    for file in *; do
+        fileCount=$((fileCount + 1))
+        if [ "$file" = "message" ]; then
+            continue;
+        fi
+
+        if ! cmp -s "$file" "../../index/$file"; then
+            commitSameFiles=$((commitSameFiles - 1))
+        fi
+    done
+    # if all files in the index are the same as all the files in the previous commit, then skip.
+    if [ "$sameFiles" -eq "$commitSameFiles" ] && [ ! "$fileCount" -eq 0 ]; then
+        if [ "$different" -eq 0 ]; then
+            echo "nothing to commit"
+            exit 1 
+        fi
+        
+    fi
+    # go back into index folder.
+    cd "../../index" || exit 1
+fi
+
+
+mkdir "$pathToCommits/commit$numCommits"
+
+
+
+
+for file in *; do
+    # Will go into if below if the file exists in the index directory
+    if [ -e "$file" ]; then 
+        cat "$file" > "../commits/commit$numCommits/$file"
+    fi
+done
+
+
+
+#Add in a message file into the commit directory.
+echo "$2" > "../commits/commit$numCommits/message"
+
+
+cd "../.."
+
+echo "Committed as commit $numCommits"
